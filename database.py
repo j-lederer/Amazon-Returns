@@ -41,7 +41,7 @@ def add_tracking_id_to_queue(trackingID):
  
 def load_returnDetails_from_db():
   with engine.connect() as conn:
-    result = conn.execute(text("select * from return_details"))
+    result = conn.execute(text("select * from all_return_details"))
     return_details=[]
     for row in result.all():
       return_details.append(dict(row))
