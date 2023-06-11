@@ -21,10 +21,10 @@ import os
 
 
 credentials = dict(
-    refresh_token=os.eviron['REFRESH_TOKEN'],
-    lwa_app_id=os.eviron['LWA_APP_ID'],
-    lwa_client_secret=os.eviron['LWA_CLIENT_SECRET'],
-    aws_access_key=os.eviron['AWS_ACCESS_KEY'],
+    refresh_token=os.environ['REFRESH_TOKEN'],
+    lwa_app_id=os.environ['LWA_APP_ID'],
+    lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
+    aws_access_key=os.environ['AWS_ACCESS_KEY'],
     aws_secret_key=os.environ['AWS_SECRET_KEY'],  
     role_arn="arn:aws:iam::108760843519:role/New_Role"
 )
