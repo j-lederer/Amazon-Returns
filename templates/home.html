@@ -38,14 +38,14 @@
 	
 		{% if passed_value %}
 		<!--Can add Item Name-->
-		<!--<h3>{{passed_value['itemName']}}</h3>-->
+		<!--<h3>{{passed_value['item_name']}}</h3>-->
 		<h3>NA</h3>	
-		<h3>{{passed_value['reasonReturned']}}</h3>	
-		<h3>{{passed_value['merchantSKU']}}</h3>	
-		<h3>{{passed_value['itemsBought']}}</h3>	
-		<h3>{{passed_value['returnQuantity']}}</h3>	
-		<h3>{{passed_value['inventory']}}</h3>
-		<h3>{{passed_value['orderID']}}</h3>
+		<h3>{{passed_value['reason_returned']}}</h3>	
+		<h3>{{passed_value['sku']}}</h3>	
+		<h3>{{passed_value['order_quantity']}}</h3>	
+		<h3>{{passed_value['return_quantity']}}</h3>	
+		<h3>{{passed_value['Inventory']}}</h3>
+		<h3>{{passed_value['order_id']}}</h3>
 
 		<!--might be able to  use asin for picture-->
 		<!--<h3>{{passed_value['ASIN']}}</h3>-->
@@ -76,7 +76,7 @@
 	</div>
 	
 
-	<div class="checkList"> <form action="">
+	<div class="checkList"> <form action="/add_queue_button">
 	<input type="checkbox" id="Accept" name="Accept" value="Refund" checked>
 <label for="inventory"> Accept Return</label><br><br>
 <input type="checkbox" id="Inventory" name="Inventory" value="Increase" checked>
@@ -101,6 +101,10 @@
 		 </div>
 
   <a href="/refresh_returns_and_inventory">Refresh Returns Data</a>
+  <br>
+  <a href="/clearSearch">Clear Search</a>
+  <br>
+  <a href="/clearQueue">Clear Queue</a>
 
 	<!--From youtube flask-->
 	<div class="content">

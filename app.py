@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
 #from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from database import engine, load_queue_from_db, load_returnDetails_from_db, load_tracking_id_to_search, delete_trackingID_from_queue_db, add_tracking_id_to_queue, refresh_all_return_data_in_db
+from database import engine, load_queue_from_db, load_all_return_details_from_db, load_tracking_id_to_search, delete_trackingID_from_queue_db, add_tracking_id_to_queue, refresh_all_return_data_in_db, load_current_return_to_display_from_db, add_current_return_to_display_to_db, delete_whole_tracking_id_queue, delete_current_return_to_display_from_db, delete_tracking_id_to_search, add_tracking_id_to_search
+
 from amazonAPI import get_all_Returns_data
 
 app = Flask(__name__)
@@ -13,13 +14,19 @@ app = Flask(__name__)
 
 @app.route('/', methods=['POST', 'GET'])
 def index(): 
-  returnDetails = load_returnDetails_from_db()
-  tracking_id = load_tracking_id_to_search()
+  #returnDetails = load_returnDetails_from_db()
+  All_Return_Details = load_all_return_details_from_db()
+  tracking_id=None
+  return_details_to_display=None
+  
+  if load_tracking_id_to_search():
+    tracking_id = load_tracking_id_to_search()
+    add_current_return_to_display_to_db(tracking_id)
+  return_details_to_display = load_current_return_to_display_from_db()
   queue = load_queue_from_db()
-  if (returnDetails and tracking_id):  #if they exist
-    tasks = queue
-    #TrackingIDS.query.order_by(TrackingIDS.date_created).all()
-    return render_template('home.html', tasks=tasks, passed_value = returnDetails, tracking_id=tracking_id)
+  if (return_details_to_display and tracking_id):  #if they exist
+    print(return_details_to_display)
+    return render_template('home.html', tasks=queue, passed_value = return_details_to_display, tracking_id=tracking_id)
         
 
   else: 
@@ -28,8 +35,10 @@ def index():
 @app.route('/refresh_returns_and_inventory')
 def refresh():
     #Get all the new return data with a call from amazonAPI.py
-    print(get_all_Returns_data())
-    all_return_data = get_all_Returns_data()      
+    #print(get_all_Returns_data())
+    all_return_data = get_all_Returns_data()
+    print(all_return_data)
+  
     refresh_all_return_data_in_db(all_return_data)
     try:
         #remove the previous return details from db
@@ -49,7 +58,12 @@ def result():
 
 @app.route('/info_for_tracking_id', methods =[ 'POST', 'GET'])
 def get_info_on_track():
-    trackingID = request.form()
+    trackingID = request.form['track']
+    print(trackingID)
+    delete_tracking_id_to_search()
+    add_tracking_id_to_search(trackingID)
+    return redirect('/')
+    
     #task_to_delete = TrackingIDS.query.get_or_404(id)
     #update the database to include data for the return
 
@@ -89,8 +103,29 @@ def add_tracking_id():
 
     except:
       return 'There was a problem adding the Tracking ID to your queue'
-      
-  
+@app.route('/add_to_queue_button')
+def add_to_queue():
+  tracking_id = load_tracking_id_to_search()
+  add_tracking_id_to_queue(tracking_id)
+  return redirect('/')
+
+@app.route('/search', methods=['POST','GET'])
+def search():
+  delete_tracking_id_to_search()
+  delete_current_return_to_display_from_db()
+  tracking_id = request.form
+  add_tracking_id_to_search(tracking_id)
+  #add_current_return_to_display_to_db(tracking_id)
+  return redirect('/')
+@app.route('/clearSearch')
+def clearSearch():
+  delete_tracking_id_to_search()
+  delete_current_return_to_display_from_db()
+  return redirect('/')
+@app.route('/clearQueue')
+def clearQueue():
+  delete_whole_tracking_id_queue()
+  return redirect('/')
 
 """  
      

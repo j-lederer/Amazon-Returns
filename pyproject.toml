@@ -7,11 +7,12 @@ authors = ["Your Name <you@example.com>"]
 [tool.poetry.dependencies]
 python = ">=3.10.0,<3.11"
 numpy = "^1.22.2"
-replit = "^3.2.4"
+replit = {git = "https://github.com/noneofyourbusiness1415252/replit-py"}
 Flask = "^2.2.0"
 urllib3 = "^1.26.12"
 pymysql = "1.0.3"
 python-amazon-sp-api = "0.18.4"
+sqlalchemy = "2.0.16"
 
 [tool.poetry.dev-dependencies]
 debugpy = "^1.6.2"

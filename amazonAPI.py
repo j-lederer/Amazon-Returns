@@ -26,7 +26,7 @@ credentials = dict(
     lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
     aws_access_key=os.environ['AWS_ACCESS_KEY'],
     aws_secret_key=os.environ['AWS_SECRET_KEY'],  
-    role_arn="arn:aws:iam::108760843519:role/New_Role"
+    #role_arn="arn:aws:iam::108760843519:role/New_Role"
 )
 
 #Workflow
@@ -216,7 +216,7 @@ def get_all_Returns_data():
                     #print(response.content)
                     myroot =ET.fromstring(response.payload.get("document")) #If response is a string
                     print(myroot.tag)
-                    Returns_info = {}
+                    Returns_info = []
                     for x in myroot.iter("return_details"): #can also use myroot.findall("")
                         new_return={}
                         for y in x.iter("label_details"):
@@ -227,11 +227,10 @@ def get_all_Returns_data():
                                 # 2. Quantity returned
                                 # 3. SKU and increase inventory
                                 #Ex tracking id: "1Z0V2Y989048009061
-                                  z.text=tracking_id    
+                                  tracking_id = z.text 
                                   print("Details for return order:")
                                   print(x.find("item_details").find("return_reason_code").text)
                                   reason_returned = x.find("item_details").find("return_reason_code").text
-                                  output_data=reason_returned
                                   print(x.find("item_details").find("item_name").text)
                                   item_name = x.find("item_details").find("item_name").text 
                                   print(x.find("item_details").find("merchant_sku").text)
@@ -247,19 +246,21 @@ def get_all_Returns_data():
                                   print(x.find("order_quantity").text)
                                   order_quantity = x.find("order_quantity").text
                                   asin = x.find("item_details").find("asin").text
+                                  new_return['tracking_id']= tracking_id
                                   new_return['item_name'] = item_name
                                   new_return['sku'] = sku
                                   new_return['return_quantity'] = return_quantity
                                   new_return['refund_amount'] = refund_amount
                                   new_return['order_id'] = order_id
-                                  new_return['order_quantity'] = item_name
+                                  new_return['order_quantity'] = order_quantity
                                   new_return['asin'] = asin
-                                  new_return['Inventory'] = null
+                                  new_return['Inventory'] = None
                                   new_return['reason_returned'] = reason_returned
+
                                   Returns_info.append(new_return)
                                   
           
-
+                    print(Returns_info)
                     output_data = Returns_info                
                         
         elif processing_status == "CANCELLED":
