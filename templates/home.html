@@ -23,6 +23,7 @@
 	<h3>Number of items in this return:</h3>	
 	<h3>Inventory left:</h3>
 	<h3>Order ID:</h3>
+  <h3>In Queue:</h3>
 	</div>
 	<!--Can add Item Name-->
 	<!--<h3>Item Name:</h3>-->
@@ -46,18 +47,30 @@
 		<h3>{{passed_value['return_quantity']}}</h3>	
 		<h3>{{passed_value['Inventory']}}</h3>
 		<h3>{{passed_value['order_id']}}</h3>
+    <h3>{{queue_checker}}</h3>
 
 		<!--might be able to  use asin for picture-->
 		<!--<h3>{{passed_value['ASIN']}}</h3>-->
 		
 		{% else %}
-		<h3>Phillipe</h3>	
+    <h3>-</h3>	
+		<h3>-</h3>	
+		<h3>-</h3>	
+		<h3>-</h3>	
+		<h3>-</h3>	
+		<h3>-</h3>
+		<h3>-</h3>
+    <h3>-<h3>
+    <!--
+		<h3>Pillipe</h3>	
 		<h3>"Used"</h3>	
 		<h3>NA</h3>	
 		<h3>2</h3>	
 		<h3>1</h3>	
 		<h3>400</h3>
 		<h3>NA</h3>
+    <h3><h3>
+    -->
 		{% endif %}
 		
 
@@ -76,7 +89,7 @@
 	</div>
 	
 
-	<div class="checkList"> <form action="/add_queue_button">
+	<div class="checkList"> <form action="/add_to_queue_button" method='post'>
 	<input type="checkbox" id="Accept" name="Accept" value="Refund" checked>
 <label for="inventory"> Accept Return</label><br><br>
 <input type="checkbox" id="Inventory" name="Inventory" value="Increase" checked>
@@ -115,13 +128,15 @@
 		<table>
 			<tr>
 				<th>Tracking IDs</th>
-				<th>Added</th>
+				<th>sku</th>
+        <th>Quantity Returned<th>
 				<th>Actions</th>
 			</tr>
 			{% for task in tasks %}
 				<tr>
 					<td>{{ task['tracking'] }}</td>
-				  <td></td>
+				  <td>{{task['SKU']}}</td>
+          <td>{{task['refund_amount']}}<td>
 					<td>
 						<a href="/delete/{{task['tracking']}}">Delete</a>
 						<br>

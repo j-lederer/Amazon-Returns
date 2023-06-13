@@ -33,7 +33,7 @@ img {
 
 .introAnswers{
     position: relative;
-    top: -178px;
+    top: -210px;
     left: 500px;
 
 }
@@ -110,7 +110,7 @@ button {
 
 .trackingID{
     position: relative;
-    top:-910px;
+    top:-971px;
     left:750px;
     width: 350px;
     background-color:#800011;

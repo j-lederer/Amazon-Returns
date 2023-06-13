@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 #from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from database import engine, load_queue_from_db, load_all_return_details_from_db, load_tracking_id_to_search, delete_trackingID_from_queue_db, add_tracking_id_to_queue, refresh_all_return_data_in_db, load_current_return_to_display_from_db, add_current_return_to_display_to_db, delete_whole_tracking_id_queue, delete_current_return_to_display_from_db, delete_tracking_id_to_search, add_tracking_id_to_search
+from database import engine, load_queue_from_db, load_all_return_details_from_db, load_tracking_id_to_search, delete_trackingID_from_queue_db, add_tracking_id_to_queue, refresh_all_return_data_in_db, load_current_return_to_display_from_db, add_current_return_to_display_to_db, delete_whole_tracking_id_queue, delete_current_return_to_display_from_db, delete_tracking_id_to_search, add_tracking_id_to_search, check_if_track_in_queue
 
 from amazonAPI import get_all_Returns_data
 
@@ -18,15 +18,18 @@ def index():
   All_Return_Details = load_all_return_details_from_db()
   tracking_id=None
   return_details_to_display=None
+  queueChecker = "NO"
   
   if load_tracking_id_to_search():
     tracking_id = load_tracking_id_to_search()
+    if check_if_track_in_queue(tracking_id):
+      queueChecker = "YES"
     add_current_return_to_display_to_db(tracking_id)
   return_details_to_display = load_current_return_to_display_from_db()
   queue = load_queue_from_db()
   if (return_details_to_display and tracking_id):  #if they exist
     print(return_details_to_display)
-    return render_template('home.html', tasks=queue, passed_value = return_details_to_display, tracking_id=tracking_id)
+    return render_template('home.html', tasks=queue, passed_value = return_details_to_display, tracking_id=tracking_id, queue_checker=queueChecker)
         
 
   else: 
@@ -94,6 +97,14 @@ def delete(tracking):
 @app.route('/add_trackingID', methods=['POST', 'GET'])
 def add_tracking_id():
     tracking_id = request.form
+    print('test')
+    #print(tracking_id)
+    queue = load_queue_from_db() 
+    for track in queue:
+      if track['tracking'] == tracking_id:
+        print("Tracking ID is already in queue")
+        return redirect ('/')
+    print("Successfully Added Tracking ID to Queue.")
     add_tracking_id_to_queue(tracking_id['added_track'])
     return redirect('/')
     
@@ -103,10 +114,27 @@ def add_tracking_id():
 
     except:
       return 'There was a problem adding the Tracking ID to your queue'
-@app.route('/add_to_queue_button')
+@app.route('/add_to_queue_button', methods=['POST', 'GET'])
 def add_to_queue():
+  result=request.form
+  print(result)
   tracking_id = load_tracking_id_to_search()
-  add_tracking_id_to_queue(tracking_id)
+  return_data = load_current_return_to_display_from_db()
+  quantity_of_return = return_data['return_quantity']
+  sku = return_data['sku']
+  queue = load_queue_from_db() 
+  
+  print(return_data)
+  if return_data['order_id'] == 'Not Found':
+    print('Cannot add unknown tracking id to queue')
+    return redirect('/')
+  for track in queue:
+      #print(track['tracking'])
+      if track['tracking'] == tracking_id:
+        print("Tracking ID is already in queue")
+        return redirect ('/')
+  print("Successfully Added Tracking ID to Queue.")
+  add_tracking_id_to_queue(tracking_id, sku, quantity_of_return)
   return redirect('/')
 
 @app.route('/search', methods=['POST','GET'])
