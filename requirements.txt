@@ -3,3 +3,4 @@ gunicorn
 sqlalchemy
 pymysql
 python-amazon-sp-api
+flask-login
