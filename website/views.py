@@ -190,5 +190,5 @@ def inventoryCheck():
     return render_template('Amazon.html', passed_value_inventoryCheck = output_data)
    """
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', debug=True)
