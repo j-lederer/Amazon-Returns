@@ -5,3 +5,4 @@ pymysql
 python-amazon-sp-api
 flask-login
 Flask-SQLAlchemy
+flask-migrate
