@@ -7,7 +7,7 @@ from amazonAPI import get_all_Returns_data, increaseInventory, checkInventory, c
 
 from flask import Blueprint, render_template, request, flash, jsonify
 from flask_login import login_required, current_user
-from .models import Note
+#from .models import Note
 from . import db
 import json
 
@@ -180,15 +180,7 @@ def clearQueue():
   delete_whole_tracking_id_queue()
   return redirect('/')
 
-"""  
-     
-def inventoryCheck():
-    run_script_checkInventoryIncrease(passed_valuefromHTML[Quantity_of_SKU], passed_valuefromHTML[return_quantity]):
-    
 
-
-    return render_template('Amazon.html', passed_value_inventoryCheck = output_data)
-   """
 
 # if __name__ == '__main__':
 #     app.run(host='0.0.0.0', debug=True)
