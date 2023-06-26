@@ -15,6 +15,7 @@ python-amazon-sp-api = "0.18.4"
 sqlalchemy = "2.0.16"
 flask-login = "0.6.2"
 flask-sqlalchemy = "3.0.5"
+flask-migrate = "4.0.4"
 
 [tool.poetry.dev-dependencies]
 debugpy = "^1.6.2"

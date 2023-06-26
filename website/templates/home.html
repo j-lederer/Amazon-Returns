@@ -126,18 +126,17 @@
 			<tr>
 				<th>Tracking IDs</th>
 				<th>sku</th>
-        <th>Quantity Returned<th>
+        <th>Quantity Returned</th>
 				<th>Actions</th>
 			</tr>
 			{% for task in tasks %}
 				<tr>
 					<td>{{ task['tracking'] }}</td>
 				  <td>{{task['SKU']}}</td>
-          <td>{{task['refund_amount']}}<td>
-					<td>
-						<a href="/delete/{{task['tracking']}}">Delete</a>
+          <td>{{task['return_quantity']}}</td>
+					<td> <a href="/delete/{{task['tracking']}}">Delete</a>
 						<br>
-						<!--<a href="/update/{{task.id}}">Update</a>-->
+						<!-- <a href="/update/{{task.id}}">Update</a>-->
 					</td>
 				</tr>
 			{% endfor %}
