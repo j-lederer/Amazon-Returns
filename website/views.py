@@ -21,25 +21,26 @@ views = Blueprint('views', __name__)
 @views.route('/', methods=['POST', 'GET'])
 @login_required
 def home(): 
-  #returnDetails = load_returnDetails_from_db()
-  All_Return_Details = load_all_return_details_from_db()
+  # print(current_user)
+  # print(current_user.id)  #returnDetails = load_returnDetails_from_db()
+  All_Return_Details = load_all_return_details_from_db(current_user.id)
   tracking_id=None
   return_details_to_display=None
   Address='No Data'
   queueChecker = "NO"
  
   
-  if load_tracking_id_to_search():
-    tracking_id = load_tracking_id_to_search()
-    if check_if_track_in_queue(tracking_id):
+  if load_tracking_id_to_search(current_user.id):
+    tracking_id = load_tracking_id_to_search(current_user.id)
+    if check_if_track_in_queue(tracking_id, current_user.id):
       queueChecker = "YES"
     
-    addresses= load_address_from_db()
+    addresses= load_address_from_db(current_user.id)
 
   
-    add_current_return_to_display_to_db(tracking_id)
-  return_details_to_display = load_current_return_to_display_from_db()
-  queue = load_queue_from_db()
+    add_current_return_to_display_to_db(tracking_id, current_user.id)
+  return_details_to_display = load_current_return_to_display_from_db(current_user.id)
+  queue = load_queue_from_db(current_user.id)
   if (return_details_to_display and tracking_id):  #if they exist
     print(return_details_to_display)
     orderID = return_details_to_display['order_id']
@@ -63,8 +64,8 @@ def refresh():
     print(all_return_data)
     inventory_data = checkInventory()
     addressData = get_addresses_from_GetOrders()
-    refresh_all_return_data_in_db(all_return_data, inventory_data)
-    refresh_addresses_in_db(addressData)
+    refresh_all_return_data_in_db(all_return_data, inventory_data, current_user.id)
+    refresh_addresses_in_db(addressData, current_user.id)
     try:
         #remove the previous return details from db
         #and add the new return details to db
@@ -78,8 +79,8 @@ def refresh():
 def get_info_on_track():
     trackingID = request.form['track']
     print(trackingID)
-    delete_tracking_id_to_search()
-    add_tracking_id_to_search(trackingID)
+    delete_tracking_id_to_search(current_user.id)
+    add_tracking_id_to_search(trackingID, current_user.id)
     return redirect('/')
     
     #task_to_delete = TrackingIDS.query.get_or_404(id)
@@ -95,25 +96,25 @@ def get_info_on_track():
 @views.route('/increase_inventory', methods =['POST', 'GET'])
 def increase_inventory():
   #take the tracking id's in the queue and increase inventory by the return order amount for each
-  Quantity_of_SKUS = checkInventory()
-  result = increaseInventory(Quantity_of_SKUS)
+  Quantity_of_SKUS = checkInventory(current_user.id)
+  result = increaseInventory(Quantity_of_SKUS, current_user.id)
   print(type(result[1]))
   print(result[1])
-  result = checkInventoryIncrease(Quantity_of_SKUS, result[1])
+  result = checkInventoryIncrease(Quantity_of_SKUS, result[1], current_user.id)
   print(result)
   if result == "Inventory Increased Successfully":
-    delete_tracking_id_to_search()
-    delete_current_return_to_display_from_db()
+    delete_tracking_id_to_search(current_user.id)
+    delete_current_return_to_display_from_db(current_user.id)
   
   return redirect('/')
 
 @views.route('/delete/<tracking>')
 def delete(tracking):
-    delete_trackingID_from_queue_db(tracking)
+    delete_trackingID_from_queue_db(tracking, current_user.id)
     return redirect('/')
   
     try:
-        delete_trackingID_from_queue_db(tracking)
+        delete_trackingID_from_queue_db(tracking, current_user.id)
         return redirect('/')
     except:
         return 'There was a problem deleting that task'
@@ -124,17 +125,17 @@ def add_tracking_id():
     tracking_id = request.form
     print('test')
     #print(tracking_id)
-    queue = load_queue_from_db() 
+    queue = load_queue_from_db(current_user.id) 
     for track in queue:
       if track['tracking'] == tracking_id:
         print("Tracking ID is already in queue")
         return redirect ('/')
     print("Successfully Added Tracking ID to Queue.")
-    add_tracking_id_to_queue(tracking_id['added_track'])
+    add_tracking_id_to_queue(tracking_id['added_track'], current_user.id)
     return redirect('/')
     
     try:
-      add_tracking_id_to_queue(tracking_id['added_track'])
+      add_tracking_id_to_queue(tracking_id['added_track'], current_user.id)
       return redirect('/')
 
     except:
@@ -143,11 +144,11 @@ def add_tracking_id():
 def add_to_queue():
   result=request.form
   print(result)
-  tracking_id = load_tracking_id_to_search()
-  return_data = load_current_return_to_display_from_db()
+  tracking_id = load_tracking_id_to_search(current_user.id)
+  return_data = load_current_return_to_display_from_db(current_user.id)
   quantity_of_return = return_data['return_quantity']
   sku = return_data['sku']
-  queue = load_queue_from_db() 
+  queue = load_queue_from_db(current_user.id) 
   
   print(return_data)
   if return_data['order_id'] == 'Not Found':
@@ -159,25 +160,25 @@ def add_to_queue():
         print("Tracking ID is already in queue")
         return redirect ('/')
   print("Successfully Added Tracking ID to Queue.")
-  add_tracking_id_to_queue(tracking_id, sku, quantity_of_return)
+  add_tracking_id_to_queue(tracking_id, sku, quantity_of_return, current_user.id)
   return redirect('/')
 
 @views.route('/search', methods=['POST','GET'])
 def search():
-  delete_tracking_id_to_search()
-  delete_current_return_to_display_from_db()
+  delete_tracking_id_to_search(current_user.id)
+  delete_current_return_to_display_from_db(current_user.id)
   tracking_id = request.form
   add_tracking_id_to_search(tracking_id)
 #add_current_return_to_display_to_db(tracking_id)
   return redirect('/')
 @views.route('/clearSearch')
 def clearSearch():
-  delete_tracking_id_to_search()
-  delete_current_return_to_display_from_db()
+  delete_tracking_id_to_search(current_user.id)
+  delete_current_return_to_display_from_db(current_user.id)
   return redirect('/')
 @views.route('/clearQueue')
 def clearQueue():
-  delete_whole_tracking_id_queue()
+  delete_whole_tracking_id_queue(current_user.id)
   return redirect('/')
 
 

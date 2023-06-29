@@ -13,7 +13,7 @@ class Addresses(db.Model):
   OrderID = db.Column(db.String(250))
   Address = db.Column(db.String(500))
   date = db.Column(db.DateTime(timezone=True), default=func.now())
-  user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
 
 
 class All_return_details(db.Model):
@@ -29,7 +29,7 @@ class All_return_details(db.Model):
   Inventory = db.Column(db.String(500))
   reason_returned = db.Column(db.String(500))
   date = db.Column(db.DateTime(timezone=True), default=func.now())
-  user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
 
 
 class Current_return_to_display(db.Model):
@@ -45,14 +45,14 @@ class Current_return_to_display(db.Model):
   Inventory = db.Column(db.String(500))
   reason_returned = db.Column(db.String(500))
   date = db.Column(db.DateTime(timezone=True), default=func.now())
-  user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
 
 
 class Tracking_id_to_search(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   tracking_id = db.Column(db.String(250))
   date = db.Column(db.DateTime(timezone=True), default=func.now())
-  user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
 
 
 class Tracking_ids(db.Model):
@@ -61,7 +61,7 @@ class Tracking_ids(db.Model):
   SKU = db.Column(db.String(250))
   return_quantity = db.Column(db.String(250))
   date = db.Column(db.DateTime(timezone=True), default=func.now())
-  user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
 
 
 class User(db.Model, UserMixin):
@@ -69,11 +69,11 @@ class User(db.Model, UserMixin):
   email = db.Column(db.String(150), unique=True)
   password = db.Column(db.String(150))
   first_name = db.Column(db.String(150))
-  addresses = db.relationship('Addresses', backref='addresses_ref')
+  addresses = db.relationship('Addresses', backref='addresses_ref', passive_deletes=True)
   all_return_details = db.relationship('All_return_details',
-                                       backref='all_return_details_ref')
+                                       backref='all_return_details_ref', passive_deletes=True)
   current_return_to_display = db.relationship(
-    'Current_return_to_display', backref='current_return_to_display_ref')
+    'Current_return_to_display', backref='current_return_to_display_ref', passive_deletes=True)
   tracking_id_to_search = db.relationship('Tracking_id_to_search',
-                                          backref='tracking_id_to_search_ref')
-  tracking_ids = db.relationship('Tracking_ids', backref='tracking_ids_ref')
+                                          backref='tracking_id_to_search_ref', passive_deletes=True )
+  tracking_ids = db.relationship('Tracking_ids', backref='tracking_ids_ref', passive_deletes=True)

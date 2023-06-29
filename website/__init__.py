@@ -23,8 +23,9 @@ def create_app():
   #   query={
   #     "ssl_ca":"/etc/ssl/cert.pem"},
   # )
-  app.config['SQLALCHEMY_DATABASE_URI'] = os.environ[
-    'DB2'] + '?ssl_ca=website/addedExtras/cacert-2023-05-30.pem'
+  app.config['SQLALCHEMY_DATABASE_URI'] =os.environ['RAILWAY_DB_CONNECTION_STRING']
+  #os.environ[
+  #   'DB2'] + '?ssl_ca=website/addedExtras/cacert-2023-05-30.pem'
   #/etc/ssl/cert.pem'
   # app.config['SQLALCHEMY_DATABASE_URI'] = url_object
   #app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
