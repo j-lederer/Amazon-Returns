@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from .database import engine, load_queue_from_db, load_all_return_details_from_db, load_tracking_id_to_search, delete_trackingID_from_queue_db, add_tracking_id_to_queue, refresh_all_return_data_in_db, load_current_return_to_display_from_db, add_current_return_to_display_to_db, delete_whole_tracking_id_queue, delete_current_return_to_display_from_db, delete_tracking_id_to_search, add_tracking_id_to_search, check_if_track_in_queue, delete_current_return_to_display_from_db, refresh_addresses_in_db, load_address_from_db
+from .database import engine, load_queue_from_db, load_all_return_details_from_db, load_tracking_id_to_search, delete_trackingID_from_queue_db, add_tracking_id_to_queue, refresh_all_return_data_in_db, load_current_return_to_display_from_db, add_current_return_to_display_to_db, delete_whole_tracking_id_queue, delete_current_return_to_display_from_db, delete_tracking_id_to_search, add_tracking_id_to_search, check_if_track_in_queue, delete_current_return_to_display_from_db, refresh_addresses_in_db, load_address_from_db, load_users_from_db, load_deleted_users_from_db, delete_user_from_db, delete_deleted_user_from_db, clear_all_users_from_db, clear_all_deleted_users_from_db
 
 from .amazonAPI import get_all_Returns_data, increaseInventory, checkInventory, checkInventoryIncrease, get_addresses_from_GetOrders
 
@@ -55,6 +55,7 @@ def home():
       return render_template('home.html', tasks=queue,  user=current_user)
       
 @views.route('/refresh_returns_and_inventory')
+@login_required
 def refresh():
     #Get all the new return data with a call from amazonAPI.py
     #print(get_all_Returns_data())
@@ -76,6 +77,7 @@ def refresh():
 
 
 @views.route('/info_for_tracking_id', methods =[ 'POST', 'GET'])
+@login_required
 def get_info_on_track():
     trackingID = request.form['track']
     print(trackingID)
@@ -94,6 +96,7 @@ def get_info_on_track():
         return 'There was a problem getting the info for this return'
 
 @views.route('/increase_inventory', methods =['POST', 'GET'])
+@login_required
 def increase_inventory():
   #take the tracking id's in the queue and increase inventory by the return order amount for each
   Quantity_of_SKUS = checkInventory(current_user.id)
@@ -109,6 +112,7 @@ def increase_inventory():
   return redirect('/')
 
 @views.route('/delete/<tracking>')
+@login_required
 def delete(tracking):
     delete_trackingID_from_queue_db(tracking, current_user.id)
     return redirect('/')
@@ -121,6 +125,7 @@ def delete(tracking):
 
 
 @views.route('/add_trackingID', methods=['POST', 'GET'])
+@login_required
 def add_tracking_id():
     tracking_id = request.form
     print('test')
@@ -164,6 +169,7 @@ def add_to_queue():
   return redirect('/')
 
 @views.route('/search', methods=['POST','GET'])
+@login_required
 def search():
   delete_tracking_id_to_search(current_user.id)
   delete_current_return_to_display_from_db(current_user.id)
@@ -172,16 +178,65 @@ def search():
 #add_current_return_to_display_to_db(tracking_id)
   return redirect('/')
 @views.route('/clearSearch')
+@login_required
 def clearSearch():
   delete_tracking_id_to_search(current_user.id)
   delete_current_return_to_display_from_db(current_user.id)
   return redirect('/')
 @views.route('/clearQueue')
+@login_required
 def clearQueue():
   delete_whole_tracking_id_queue(current_user.id)
   return redirect('/')
 
+@views.route('admin')
+@login_required
+def admin():
+  if(current_user.email=='admin@admin675463.com'): 
+    users = load_users_from_db()
+    deleted_users = load_deleted_users_from_db()
+  
+    return render_template('admin.html', users=users,  user=current_user, deleted_users = deleted_users)
+  else:
+    flash('Access Denied.', category='error')
+    return redirect(url_for('views.home'))
+@views.route('/delete_user/<user>')
+@login_required
+def delete_user(user):
+  if(current_user.email=='admin@admin675463.com'): 
+    delete_user_from_db(user, current_user.id)
+    return redirect('/admin')
+  else:
+    flash('Access Denied.', category='error')
+    return redirect(url_for('views.home'))
 
+@views.route('/delete_deleted_user/<deleted_user>')
+@login_required
+def delete_deleted_user(deleted_user):
+  if(current_user.email=='admin@admin675463.com'): 
+    delete_deleted_user_from_db(deleted_user, current_user.id)
+    return redirect('/admin')
+  else:
+    flash('Access Denied.', category='error')
+    return redirect(url_for('views.home'))
+@views.route('/clear_all_users')
+@login_required
+def clear_users():
+  if(current_user.email=='admin@admin675463.com'): 
+    clear_all_users_from_db(current_user.id)
+    return redirect('/admin')
+  else:
+    flash('Access Denied.', category='error')
+    return redirect(url_for('views.home'))
+@views.route('/clear_all_deleted_users')
+@login_required
+def clear_deleted_users():
+  if(current_user.email=='admin@admin675463.com'): 
+    clear_all_deleted_users_from_db(current_user.id)
+    return redirect('/admin')
+  else:
+    flash('Access Denied.', category='error')
+    return redirect(url_for('views.home'))
 
 # if __name__ == '__main__':
 #     app.run(host='0.0.0.0', debug=True)

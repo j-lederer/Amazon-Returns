@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, text
 import os
-from .models import User, Addresses, All_return_details, Current_return_to_display, Tracking_id_to_search, Tracking_ids
+from .models import User, Addresses, All_return_details, Current_return_to_display, Tracking_id_to_search, Tracking_ids, Deleted_users
 from . import db
 from flask_sqlalchemy import SQLAlchemy
 
@@ -291,3 +291,35 @@ def delete_addresses_from_db(user_id):
   Addresses.query.filter_by(user_id=user_id).delete()
   db.session.commit()
 
+def load_users_from_db():
+  users = User.query.all()
+  print(users)
+  return users
+def load_deleted_users_from_db():
+  deleted_users = Deleted_users.query.all()
+  return deleted_users
+def delete_user_from_db(userid, currentUser):
+    user = User.query.filter(User.id==userid, User.email!='admin@admin675463.com').first()
+    if user:
+        #add to deleted users
+        deleted_user = Deleted_users(id=user.id, email=user.email, password=user.password, first_name=user.first_name, date_joined=user.date_joined, date_paid = user.date_paid)
+        db.session.add(deleted_user)
+        db.session.delete(user)
+        db.session.commit()
+def delete_deleted_user_from_db(deleted_userid, currentUser):
+  deleted_user = Deleted_users.query.filter_by(id=deleted_userid).first()
+  if deleted_user:
+    db.session.delete(deleted_user)
+    db.session.commit()
+  
+def clear_all_users_from_db(currentUser):
+  #add them to deleted users
+  users = User.query.filter(User.email != 'admin@admin675463.com').all()
+  for user in users:
+    deleted_user = Deleted_users(id=user.id, email=user.email, password=user.password, first_name=user.first_name, date_joined=user.date_joined, date_paid = user.date_paid)
+    db.session.add(deleted_user)
+  User.query.filter(User.email != 'admin@admin675463.com').delete()
+  db.session.commit()
+def clear_all_deleted_users_from_db(currentUser):
+  Deleted_users.query.delete()
+  db.session.commit()

@@ -45,7 +45,7 @@ def get_all_Returns_data():
         #report_types = ["GET_FLAT_FILE_OPEN_LISTINGS_DATA",]
         res = Reports(credentials=credentials).create_report(
             reportType="GET_XML_RETURNS_DATA_BY_RETURN_DATE",
-            dataStartTime=(datetime.utcnow() - timedelta(days=40)).isoformat(),
+            dataStartTime=(datetime.utcnow() - timedelta(days=50)).isoformat(),
             #**Looks like get an error (FATAL) if startTime is before account was opened or if bad example. I got error with year 2019
             #dataEndTime=(datetime.utcnow() - timedelta(days=1)).isoformat(), 
             marketplaceIds=[
@@ -395,7 +395,7 @@ def run_script_getReturns(tracking_id):
         #report_types = ["GET_FLAT_FILE_OPEN_LISTINGS_DATA",]
         res = Reports(credentials=credentials).create_report(
             reportType="GET_XML_RETURNS_DATA_BY_RETURN_DATE",
-            dataStartTime=(datetime.utcnow() - timedelta(days=20)).isoformat(),
+            dataStartTime=(datetime.utcnow() - timedelta(days=40)).isoformat(),
             #**Looks like get an error (FATAL) if startTime is before account was opened or if bad example. I got error with year 2019
             #dataEndTime=(datetime.utcnow() - timedelta(days=1)).isoformat(), 
             marketplaceIds=[
