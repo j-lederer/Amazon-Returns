@@ -79,10 +79,13 @@ def stripe_webhook():
         return {}, 400
 
     # Handle the checkout.session.completed event
+    print(event)
+    print(event['type'])
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         print(session)
         line_items = stripe.checkout.Session.list_line_items(session['id'], limit=1)
         print(line_items['data'][0]['description'])
+        print('test')
 
     return {}
