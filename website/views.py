@@ -15,9 +15,6 @@ views = Blueprint('views', __name__)
 
 
 
-
-
-
 @views.route('/', methods=['POST', 'GET'])
 @login_required
 def home(): 

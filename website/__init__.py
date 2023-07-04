@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 import os
 from sqlalchemy import URL
 import sqlalchemy
+import stripe
 
 db = SQLAlchemy()
 
@@ -24,6 +25,8 @@ def create_app():
   #     "ssl_ca":"/etc/ssl/cert.pem"},
   # )
   app.config['SQLALCHEMY_DATABASE_URI'] =os.environ['RAILWAY_DB_CONNECTION_STRING']
+  app.config['STRIPE_PUBLIC_KEY'] = os.environ['STRIPE_TEST_PUBLIC_KEY']
+  app.config['STRIPE_SECRET_KEY'] = os.environ['STRIPE_TEST_SECRET_KEY'] 
   #os.environ[
   #   'DB2'] + '?ssl_ca=website/addedExtras/cacert-2023-05-30.pem'
   #/etc/ssl/cert.pem'
@@ -31,11 +34,14 @@ def create_app():
   #app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
   db.init_app(app)
   migrate = Migrate(app, db)
+  stripe.api_key = app.config['STRIPE_SECRET_KEY']
   from .views import views
   from .auth import auth
+  from .stripePay import stripePay
 
   app.register_blueprint(views, url_prefix='/')
   app.register_blueprint(auth, url_prefix='/')
+  app.register_blueprint(stripePay, url_prefix='/')
 
   from .models import User
   #, Note
