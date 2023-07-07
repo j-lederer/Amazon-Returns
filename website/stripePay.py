@@ -62,7 +62,7 @@ def stripe_webhook():
         abort(400)
     payload = request.get_data()
     sig_header = request.environ.get('HTTP_STRIPE_SIGNATURE')
-    endpoint_secret = 'YOUR_ENDPOINT_SECRET'
+    endpoint_secret = os.environ['STRIPE_ENDPOINT_SECRET']
     event = None
 
     try:
@@ -79,13 +79,12 @@ def stripe_webhook():
         return {}, 400
 
     # Handle the checkout.session.completed event
-    print(event)
-    print(event['type'])
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         print(session)
         line_items = stripe.checkout.Session.list_line_items(session['id'], limit=1)
         print(line_items['data'][0]['description'])
-        print('test')
+        print(line_items['data'][0])
+              
 
     return {}

@@ -87,4 +87,10 @@ class Deleted_users(db.Model, UserMixin):
   first_name = db.Column(db.String(150))
   date_joined = db.Column(db.DateTime(timezone=True), default=func.now())
   date_paid = db.Column(db.String(150))
+
+# class StripeCustomer(db.Model):
+#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+#     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+#     stripeCustomerId = db.Column(db.String(255), nullable=False)
+#     stripeSubscriptionId = db.Column(db.String(255), nullable=False)
   
