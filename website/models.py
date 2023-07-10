@@ -70,7 +70,7 @@ class User(db.Model, UserMixin):
   password = db.Column(db.String(150))
   first_name = db.Column(db.String(150))
   date_joined = db.Column(db.DateTime(timezone=True), default=func.now())
-  date_paid = db.Column(db.String(150))
+  status = db.Column(db.String(150))
   addresses = db.relationship('Addresses', backref='addresses_ref', passive_deletes=True)
   all_return_details = db.relationship('All_return_details',
                                        backref='all_return_details_ref', passive_deletes=True)
@@ -79,6 +79,7 @@ class User(db.Model, UserMixin):
   tracking_id_to_search = db.relationship('Tracking_id_to_search',
                                           backref='tracking_id_to_search_ref', passive_deletes=True )
   tracking_ids = db.relationship('Tracking_ids', backref='tracking_ids_ref', passive_deletes=True)
+  stripecustomer = db.relationship('Stripecustomer', backref='stripecustomer_ref', passive_deletes=True)
 
 class Deleted_users(db.Model, UserMixin):
   id = db.Column(db.Integer, primary_key=True)
@@ -86,11 +87,11 @@ class Deleted_users(db.Model, UserMixin):
   password = db.Column(db.String(150))
   first_name = db.Column(db.String(150))
   date_joined = db.Column(db.DateTime(timezone=True), default=func.now())
-  date_paid = db.Column(db.String(150))
+  status = db.Column(db.String(150))
 
-# class StripeCustomer(db.Model):
-#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-#     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-#     stripeCustomerId = db.Column(db.String(255), nullable=False)
-#     stripeSubscriptionId = db.Column(db.String(255), nullable=False)
+class Stripecustomer(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
+    stripeCustomerId = db.Column(db.String(255), nullable=False)
+    stripeSubscriptionId = db.Column(db.String(255), nullable=False)
   

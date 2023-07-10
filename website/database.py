@@ -302,7 +302,7 @@ def delete_user_from_db(userid, currentUser):
     user = User.query.filter(User.id==userid, User.email!='admin@admin675463.com').first()
     if user:
         #add to deleted users
-        deleted_user = Deleted_users(id=user.id, email=user.email, password=user.password, first_name=user.first_name, date_joined=user.date_joined, date_paid = user.date_paid)
+        deleted_user = Deleted_users(id=user.id, email=user.email, password=user.password, first_name=user.first_name, date_joined=user.date_joined)
         db.session.add(deleted_user)
         db.session.delete(user)
         db.session.commit()
@@ -316,7 +316,7 @@ def clear_all_users_from_db(currentUser):
   #add them to deleted users
   users = User.query.filter(User.email != 'admin@admin675463.com').all()
   for user in users:
-    deleted_user = Deleted_users(id=user.id, email=user.email, password=user.password, first_name=user.first_name, date_joined=user.date_joined, date_paid = user.date_paid)
+    deleted_user = Deleted_users(id=user.id, email=user.email, password=user.password, first_name=user.first_name, date_joined=user.date_joined)
     db.session.add(deleted_user)
   User.query.filter(User.email != 'admin@admin675463.com').delete()
   db.session.commit()
