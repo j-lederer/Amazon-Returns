@@ -5,12 +5,16 @@ from .database import engine, load_queue_from_db, load_all_return_details_from_d
 
 from .amazonAPI import get_all_Returns_data, increaseInventory, checkInventory, checkInventoryIncrease, get_addresses_from_GetOrders
 
-from flask import Blueprint, render_template, request, flash, jsonify
+from flask import Blueprint, render_template, request, flash, jsonify, send_file, make_response
 from flask_login import login_required, current_user
 from .models import Stripecustomer
 import stripe
 from . import db
 import json
+from io import BytesIO
+import os
+
+from .download_pdf import download_queue_data
 
 views = Blueprint('views', __name__)
 
@@ -285,6 +289,27 @@ def clear_deleted_users():
   else:
     flash('Access Denied.', category='error')
     return redirect(url_for('views.home'))
+
+
+
+@views.route('/download-queue-pdf')
+def download_queue():
+    download_queue_data(current_user.id)
+    buffer = BytesIO()
+    with open('website/static/files/queue.pdf', 'rb') as f:
+        buffer.write(f.read())
+    buffer.seek(0)
+    os.remove('website/static/files/queue.pdf')
+    response = make_response(buffer.getvalue())
+  
+      # Set the appropriate headers for a PDF file download
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'attachment; filename=queue.pdf'
+  
+    return response
+  #   return send_file(buffer, mimetype='application/pdf', as_attachment=True,
+  # attachment_filename='queue.pdf'
+  #           )
 
 # if __name__ == '__main__':
 #     app.run(host='0.0.0.0', debug=True)
