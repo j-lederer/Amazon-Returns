@@ -12,8 +12,6 @@ from.database import load_queue_from_db
 
 def download_queue_data(user_id):
     tracking_ids = load_queue_from_db(user_id)
-    print("TRACKING_IDS_QUEUE")
-    print(tracking_ids)
     pdf = PDF()
     pdf.generate_pdf(tracking_ids)
 
