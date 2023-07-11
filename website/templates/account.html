@@ -24,15 +24,49 @@
       {% endif %}
     </div>
 
+
 <div class="container mt-5">
-  <form method="POST" action="/">
+      {% if refresh_token %}
+        <h4>Amazon Account Status:</h4>
+        <div class="card" style="width: 18rem;">
+          <div class="card-body">
+            <h5 class="card-title">Connected</h5>
+            <p class="card-text">Have to refresh once a year.
+            </p>
+          </div>
+        </div>
+
+<div class='container mt-5'>
+  <h4>Renew Amazon Connection</h4>
+  <a href="/connect_amazon">Refresh Amazoon Connection</a>
+  <form method="POST" action="/connect_amazon">
+  <button type="submit">Refresh Amazon Account Connection</button>
+</form>
+</div>
+      {% else %}
+        <a href="/connect_amazon">Link Amazon Account</a>
+        <div class="container mt-5">
+  <form method="POST" action="/connect_amazon">
   <button type="submit">Connect Amazon Account</button>
 </div>
+      {% endif %}
+    </div>
+
+
+
 
 <div class="container mt-5">
   <form method="POST" action="/">
   <button type="submit" onclick='return confirm("Are you sure you want to delete your account?");'>Delete Account</button>
 </div>
+
+
+
+{% endblock %}
+
+
+
+<!--stripe pricing table-->
 <!-- 
 <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
 <stripe-pricing-table 
@@ -42,4 +76,3 @@ publishable-key="pk_test_51NPo7ZGx5rHp5dcpVtFZleeCQ26ipY3ywIXRZuPNtz0QNP51MbJRBh
 </stripe-pricing-table> -->
 
 
-{% endblock %}

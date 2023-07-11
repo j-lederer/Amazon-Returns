@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from .database import engine, load_queue_from_db, load_all_return_details_from_db, load_tracking_id_to_search, delete_trackingID_from_queue_db, add_tracking_id_to_queue, refresh_all_return_data_in_db, load_current_return_to_display_from_db, add_current_return_to_display_to_db, delete_whole_tracking_id_queue, delete_current_return_to_display_from_db, delete_tracking_id_to_search, add_tracking_id_to_search, check_if_track_in_queue, delete_current_return_to_display_from_db, refresh_addresses_in_db, load_address_from_db, load_users_from_db, load_deleted_users_from_db, delete_user_from_db, delete_deleted_user_from_db, clear_all_users_from_db, clear_all_deleted_users_from_db
+from .database import engine, load_queue_from_db, load_all_return_details_from_db, load_tracking_id_to_search, delete_trackingID_from_queue_db, add_tracking_id_to_queue, refresh_all_return_data_in_db, load_current_return_to_display_from_db, add_current_return_to_display_to_db, delete_whole_tracking_id_queue, delete_current_return_to_display_from_db, delete_tracking_id_to_search, add_tracking_id_to_search, check_if_track_in_queue, delete_current_return_to_display_from_db, refresh_addresses_in_db, load_address_from_db, load_users_from_db, load_deleted_users_from_db, delete_user_from_db, delete_deleted_user_from_db, clear_all_users_from_db, clear_all_deleted_users_from_db, add_refresh_token, get_refresh_token
 
 from .amazonAPI import get_all_Returns_data, increaseInventory, checkInventory, checkInventoryIncrease, get_addresses_from_GetOrders
 
@@ -49,29 +49,24 @@ def home():
             "subscription": subscription,
             "product": product,
         }
-  if (subscription and subscription.status=='active'):
-    if (return_details_to_display and tracking_id and customer):  #if they exist
-      print(return_details_to_display)
-      orderID = return_details_to_display['order_id']
-      for data in addresses:
-        if data['OrderID'] == orderID:
-          Address = data['Address']
-          #print(Address)
-      return render_template('home.html', tasks=queue, passed_value = return_details_to_display, tracking_id=tracking_id, queue_checker=queueChecker, address=Address,  user=current_user, **context)
-  # elif (return_details_to_display and tracking_id):  #if they exist
-  #   print(return_details_to_display)
-  #   orderID = return_details_to_display['order_id']
-  #   for data in addresses:
-  #     if data['OrderID'] == orderID:
-  #       Address = data['Address']
-  #       #print(Address)
-  #   return render_template('home.html', tasks=queue, passed_value = return_details_to_display, tracking_id=tracking_id, queue_checker=queueChecker, address=Address,  user=current_user)
-        
-  
-    else: 
-        return render_template('home.html', tasks=queue,  user=current_user)
-  else:
-    flash('Account not complete. You do not have access to this page.', category='error')
+  if(get_refresh_token(current_user.id)):
+    if (subscription and subscription.status=='active'):
+      if (return_details_to_display and tracking_id and customer):  #if they exist
+        print(return_details_to_display)
+        orderID = return_details_to_display['order_id']
+        for data in addresses:
+          if data['OrderID'] == orderID:
+            Address = data['Address']
+            #print(Address)
+        return render_template('home.html', tasks=queue, passed_value = return_details_to_display, tracking_id=tracking_id, queue_checker=queueChecker, address=Address,  user=current_user, **context)
+      else: 
+          return render_template('home.html', tasks=queue,  user=current_user)
+    
+    else:
+      flash('Account not complete. You do not have access to this page. Your are not subscribed.', category='error')
+      return redirect('/account')
+  else: 
+    flash('Account not complete. You do not have access to this page. Your AmazonSellerCentral account is not linked.', category='error')
     return redirect('/account')
       
 @views.route('/refresh_returns_and_inventory')
@@ -81,10 +76,10 @@ def refresh():
     #print(get_all_Returns_data())
     print("Refreshing Returns and Inventory data:")
     print("Getting returns data: ")
-    all_return_data = get_all_Returns_data()
+    all_return_data = get_all_Returns_data(current_user.refresh_token)
     print(all_return_data)
-    inventory_data = checkInventory()
-    addressData = get_addresses_from_GetOrders()
+    inventory_data = checkInventory(current_user.refresh_token)
+    addressData = get_addresses_from_GetOrders(current_user.refresh_token)
     refresh_all_return_data_in_db(all_return_data, inventory_data, current_user.id)
     refresh_addresses_in_db(addressData, current_user.id)
     try:
@@ -119,11 +114,11 @@ def get_info_on_track():
 @login_required
 def increase_inventory():
   #take the tracking id's in the queue and increase inventory by the return order amount for each
-  Quantity_of_SKUS = checkInventory(current_user.id)
-  result = increaseInventory(Quantity_of_SKUS, current_user.id)
+  Quantity_of_SKUS = checkInventory( current_user.refresh_token)
+  result = increaseInventory(Quantity_of_SKUS, current_user.id,  current_user.refresh_token)
   print(type(result[1]))
   print(result[1])
-  result = checkInventoryIncrease(Quantity_of_SKUS, result[1], current_user.id)
+  result = checkInventoryIncrease(Quantity_of_SKUS, result[1], current_user.refresh_token)
   print(result)
   if result == "Inventory Increased Successfully":
     delete_tracking_id_to_search(current_user.id)
@@ -221,7 +216,7 @@ def account():
   metadata={'user_id': current_user.id}
 )
   
-  customer = Stripecustomer.query.filter_by(user_id=current_user.id).order_by(Stripecustomer.id.desc()).first()
+  customer = Stripecustomer.query.filter_by(user_id=current_user.id).order_by(Stripecustomer.id.desc()).first() 
   if customer:
         subscription = stripe.Subscription.retrieve(customer.stripeSubscriptionId)
         product = stripe.Product.retrieve(subscription.plan.product)
@@ -229,7 +224,16 @@ def account():
             "subscription": subscription,
             "product": product,
         }
-        return render_template('account.html', user=current_user, **context)
+    
+  refresh_token = get_refresh_token(current_user.id)
+  if (refresh_token and customer):
+    return render_template('account.html', user=current_user, refresh_token=refresh_token, **context)
+  elif customer:
+    return render_template('account.html', user=current_user, **context)
+  elif refresh_token:
+    return render_template('account.html', user=current_user, refresh_token=refresh_token)
+
+        
   return render_template('account.html', user=current_user)
 
 

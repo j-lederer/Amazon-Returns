@@ -323,3 +323,20 @@ def clear_all_users_from_db(currentUser):
 def clear_all_deleted_users_from_db(currentUser):
   Deleted_users.query.delete()
   db.session.commit()
+
+
+def add_refresh_token(user_id, refreshToken):
+  user = User.query.get(user_id)
+  if user:
+    user.refresh_token = refreshToken
+    db.session.commit()
+  else:
+    print("error with database call add_refresh_token")
+def get_refresh_token(user_id):
+  user = User.query.get(user_id)
+  if user:
+    refresh_token = user.refresh_token
+    return refresh_token
+  else:
+    print("error with database call get_refresh_token")
+  

@@ -22,14 +22,14 @@ from .database import load_queue_from_db, delete_whole_tracking_id_queue
 
 
 
-credentials = dict(
-    refresh_token=os.environ['REFRESH_TOKEN'],
-    lwa_app_id=os.environ['LWA_APP_ID'],
-    lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
-    aws_access_key=os.environ['AWS_ACCESS_KEY'],
-    aws_secret_key=os.environ['AWS_SECRET_KEY'],  
-    #role_arn="arn:aws:iam::108760843519:role/New_Role"
-)
+# credentials = dict(
+#     refresh_token=os.environ['REFRESH_TOKEN'],
+#     lwa_app_id=os.environ['LWA_APP_ID'],
+#     lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
+#     aws_access_key=os.environ['AWS_ACCESS_KEY'],
+#     aws_secret_key=os.environ['AWS_SECRET_KEY'],  
+#     #role_arn="arn:aws:iam::108760843519:role/New_Role"
+# )
 
 
 
@@ -40,7 +40,15 @@ from sp_api.base.reportTypes import ReportType
 
 
 
-def get_all_Returns_data():
+def get_all_Returns_data(refresh_token):
+        credentials = dict(
+          refresh_token=refresh_token,
+          lwa_app_id=os.environ['LWA_APP_ID'],
+          lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
+          aws_access_key=os.environ['AWS_ACCESS_KEY'],
+          aws_secret_key=os.environ['AWS_SECRET_KEY'],  
+          #role_arn="arn:aws:iam::108760843519:role/New_Role"
+      )
         import xml.etree.ElementTree as ET
         #report_types = ["GET_FLAT_FILE_OPEN_LISTINGS_DATA",]
         res = Reports(credentials=credentials).create_report(
@@ -136,7 +144,15 @@ def get_all_Returns_data():
 
 
 
-def checkInventory():
+def checkInventory(refresh_token):
+  credentials = dict(
+    refresh_token=refresh_token,
+    lwa_app_id=os.environ['LWA_APP_ID'],
+    lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
+    aws_access_key=os.environ['AWS_ACCESS_KEY'],
+    aws_secret_key=os.environ['AWS_SECRET_KEY'],  
+    #role_arn="arn:aws:iam::108760843519:role/New_Role"
+)
 
 #To get Report of Inventories
   print("Inventory Report:")
@@ -177,14 +193,22 @@ def checkInventory():
       print(Quantity_of_SKUS)    
       return Quantity_of_SKUS
 
-def increaseInventory(Quantity_of_SKUS):
+def increaseInventory(Quantity_of_SKUS, user_id, refresh_token):
+  credentials = dict(
+    refresh_token=refresh_token,
+    lwa_app_id=os.environ['LWA_APP_ID'],
+    lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
+    aws_access_key=os.environ['AWS_ACCESS_KEY'],
+    aws_secret_key=os.environ['AWS_SECRET_KEY'],  
+    #role_arn="arn:aws:iam::108760843519:role/New_Role"
+)
   #submitting feed to increase inventory   
   from io import BytesIO
   from sp_api.api import Feeds
   #from sp_api.auth import VendorCredentials
   import xml.etree.ElementTree as ET
 
-  queue = load_queue_from_db()
+  queue = load_queue_from_db(user_id)
   queue_to_increase= {}
   is_duplicate = False
   for track in queue:
@@ -192,9 +216,9 @@ def increaseInventory(Quantity_of_SKUS):
         if sku == track['SKU']:
           is_duplicate = True
       if is_duplicate:
-        queue_to_increase[track['SKU']] = queue_to_increase[track['SKU']] + track['refund_amount']        
+        queue_to_increase[track['SKU']] = queue_to_increase[track['SKU']] + track['return_quantity']        
       else:
-        queue_to_increase[track['SKU']]=track['refund_amount']
+        queue_to_increase[track['SKU']]=track['return_quantity']
   print (queue_to_increase)
         #return queue_to_increase
   for sku in queue_to_increase.keys():
@@ -295,44 +319,65 @@ def increaseInventory(Quantity_of_SKUS):
     except Exception as e:
         print(f"Error submitting feed: {e}") 
       
-  delete_whole_tracking_id_queue()
+  delete_whole_tracking_id_queue(user_id)
   return "Inventory Feeds submitted successfully", queue_to_increase
     
       
         
   
-def checkInventoryIncrease(Initial_quantity_of_skus, skus_and_increases):
+def checkInventoryIncrease(Initial_quantity_of_skus, skus_and_increases, refresh_token):
+  credentials = dict(
+    refresh_token=refresh_token,
+    lwa_app_id=os.environ['LWA_APP_ID'],
+    lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
+    aws_access_key=os.environ['AWS_ACCESS_KEY'],
+    aws_secret_key=os.environ['AWS_SECRET_KEY'],  
+    #role_arn="arn:aws:iam::108760843519:role/New_Role"
+)
   #Test to see if inventory update   
 
   
   
   
   while True:
+    # print(skus_and_increases)
     counter = int(0)
-    Updated_Inventory_Reading = checkInventory()
-    for sku in skus_and_increases.keys():
-      Quantity_of_SKU = skus_and_increases[sku] 
-
-      print("Quantity left of sku")
-      print(sku)
-      print("is")
-      print(skus_and_increases[sku])
-      
-      Initial_quantity_of_sku= Initial_quantity_of_skus[sku]
-      print(Updated_Inventory_Reading[sku])
-      print(int(Initial_quantity_of_sku) + int(skus_and_increases[sku]))
-      print(counter)
-      print(len(skus_and_increases))
-      if (int(Updated_Inventory_Reading[sku]) == (int(Initial_quantity_of_sku) + int(skus_and_increases[sku]))): 
-        counter+=1
-        if counter == len(skus_and_increases):
-          print('breaking')
-          return "Inventory Increased Successfully"
-    time.sleep(60)
+    Updated_Inventory_Reading = checkInventory(refresh_token)
+    if(skus_and_increases):
+      for sku in skus_and_increases.keys():
+        Quantity_of_SKU = skus_and_increases[sku] 
+  
+        print("Quantity left of sku")
+        print(sku)
+        print("is")
+        print(skus_and_increases[sku])
+        
+        Initial_quantity_of_sku= Initial_quantity_of_skus[sku]
+        print(Updated_Inventory_Reading[sku])
+        print(int(Initial_quantity_of_sku) + int(skus_and_increases[sku]))
+        print(counter)
+        print(len(skus_and_increases))
+        if (int(Updated_Inventory_Reading[sku]) == (int(Initial_quantity_of_sku) + int(skus_and_increases[sku]))): 
+          counter+=1
+          if counter == len(skus_and_increases):
+            print('breaking')
+            return "Inventory Increased Successfully"
+    
+      time.sleep(60)
+    else:
+      return ("No returns in queue detected")
   return "Inventory Increase Not Detected"
 
 
-def get_addresses_from_GetOrders():
+def get_addresses_from_GetOrders(refresh_token):
+  credentials = dict(
+    refresh_token=refresh_token,
+    lwa_app_id=os.environ['LWA_APP_ID'],
+    lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
+    aws_access_key=os.environ['AWS_ACCESS_KEY'],
+    aws_secret_key=os.environ['AWS_SECRET_KEY'],  
+    #role_arn="arn:aws:iam::108760843519:role/New_Role"
+)
   res = Orders(credentials=credentials, marketplace=Marketplaces.US)
   result = res.get_orders(CreatedAfter='2021-05-20', CreatedBefore=date.today().isoformat()).payload
   #print(result)
@@ -383,7 +428,15 @@ def get_addresses_from_GetOrders():
 
 
 
-def run_script_getReturns(tracking_id):
+def run_script_getReturns(tracking_id, refresh_token):
+        credentials = dict(
+          refresh_token=refresh_token,
+          lwa_app_id=os.environ['LWA_APP_ID'],
+          lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
+          aws_access_key=os.environ['AWS_ACCESS_KEY'],
+          aws_secret_key=os.environ['AWS_SECRET_KEY'],  
+          #role_arn="arn:aws:iam::108760843519:role/New_Role"
+      )
         import xml.etree.ElementTree as ET
         print("running method for tracking_id : ")
         print(tracking_id)
@@ -519,7 +572,15 @@ def run_script_getReturns(tracking_id):
         
         return output_data
 
-def get_all_inventory_data():
+def get_all_inventory_data(refresh_token):
+  credentials = dict(
+    refresh_token=refresh_token,
+    lwa_app_id=os.environ['LWA_APP_ID'],
+    lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
+    aws_access_key=os.environ['AWS_ACCESS_KEY'],
+    aws_secret_key=os.environ['AWS_SECRET_KEY'],  
+    #role_arn="arn:aws:iam::108760843519:role/New_Role"
+)
   Quantity_of_SKU = -1
   #To get Report of Inventories
   print("Inventory Report:")
@@ -559,7 +620,15 @@ def get_all_inventory_data():
       #add data to Inventory_info
                              
     return Inventory_info            
-def run_script_increaseInventory(sku_value):
+def run_script_increaseInventory(sku_value, refresh_token):
+        credentials = dict(
+          refresh_token=refresh_token,
+          lwa_app_id=os.environ['LWA_APP_ID'],
+          lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
+          aws_access_key=os.environ['AWS_ACCESS_KEY'],
+          aws_secret_key=os.environ['AWS_SECRET_KEY'],  
+          #role_arn="arn:aws:iam::108760843519:role/New_Role"
+      )
         #submitting feed to increase inventory   
         from io import BytesIO
         from sp_api.api import Feeds
@@ -667,7 +736,15 @@ def run_script_increaseInventory(sku_value):
             print(f"Error submitting feed: {e}") 
 
         return  "Inventory Feed submitted successfully"
-def run_script_checkInventoryIncrease(Quantity_of_SKU, return_quantity):
+def run_script_checkInventoryIncrease(Quantity_of_SKU, return_quantity, refresh_token):
+        credentials = dict(
+          refresh_token=refresh_token,
+          lwa_app_id=os.environ['LWA_APP_ID'],
+          lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
+          aws_access_key=os.environ['AWS_ACCESS_KEY'],
+          aws_secret_key=os.environ['AWS_SECRET_KEY'],  
+          #role_arn="arn:aws:iam::108760843519:role/New_Role"
+      )
      #Test to see if inventory update
         Initial_quantity_of_sku = Quantity_of_SKU
         Initail_return_quantity = return_quantity    
