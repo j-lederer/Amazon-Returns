@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from .database import engine, load_queue_from_db, load_all_return_details_from_db, load_tracking_id_to_search, delete_trackingID_from_queue_db, add_tracking_id_to_queue, refresh_all_return_data_in_db, load_current_return_to_display_from_db, add_current_return_to_display_to_db, delete_whole_tracking_id_queue, delete_current_return_to_display_from_db, delete_tracking_id_to_search, add_tracking_id_to_search, check_if_track_in_queue, delete_current_return_to_display_from_db, refresh_addresses_in_db, load_address_from_db, load_users_from_db, load_deleted_users_from_db, delete_user_from_db, delete_deleted_user_from_db, clear_all_users_from_db, clear_all_deleted_users_from_db, add_refresh_token, get_refresh_token
+from .database import engine, load_queue_from_db, load_all_return_details_from_db, load_tracking_id_to_search, delete_trackingID_from_queue_db, add_tracking_id_to_queue, refresh_all_return_data_in_db, load_current_return_to_display_from_db, add_current_return_to_display_to_db, delete_whole_tracking_id_queue, delete_current_return_to_display_from_db, delete_tracking_id_to_search, add_tracking_id_to_search, check_if_track_in_queue, delete_current_return_to_display_from_db, refresh_addresses_in_db, load_address_from_db, load_users_from_db, load_deleted_users_from_db, delete_user_from_db, delete_deleted_user_from_db, clear_all_users_from_db, clear_all_deleted_users_from_db, add_refresh_token, get_refresh_token, load_restricted, add_request_to_delete_user
 
 from .amazonAPI import get_all_Returns_data, increaseInventory, checkInventory, checkInventoryIncrease, get_addresses_from_GetOrders
 
@@ -14,7 +14,8 @@ import json
 from io import BytesIO
 import os
 
-from .download_pdf import download_queue_data
+from .download_pdf_queue import download_queue_data
+from .download_pdf_inventoryChange import download_queue_and_inventory_change_data
 
 views = Blueprint('views', __name__)
 
@@ -30,6 +31,7 @@ def home():
   return_details_to_display=None
   Address='No Data'
   queueChecker = "NO"
+  
  
   
   if load_tracking_id_to_search(current_user.id):
@@ -53,24 +55,29 @@ def home():
             "subscription": subscription,
             "product": product,
         }
-  if(get_refresh_token(current_user.id)):
-    if (subscription and subscription.status=='active'):
-      if (return_details_to_display and tracking_id and customer):  #if they exist
-        print(return_details_to_display)
-        orderID = return_details_to_display['order_id']
-        for data in addresses:
-          if data['OrderID'] == orderID:
-            Address = data['Address']
-            #print(Address)
-        return render_template('home.html', tasks=queue, passed_value = return_details_to_display, tracking_id=tracking_id, queue_checker=queueChecker, address=Address,  user=current_user, **context)
-      else: 
-          return render_template('home.html', tasks=queue,  user=current_user)
     
-    else:
-      flash('Account not complete. You do not have access to this page. Your are not subscribed.', category='error')
+  if(not load_restricted(current_user.id)):
+    if(get_refresh_token (current_user.id)):
+      if (subscription and subscription.status=='active'):
+        if (return_details_to_display and tracking_id and customer):  #if they exist
+          print(return_details_to_display)
+          orderID = return_details_to_display['order_id']
+          for data in addresses:
+            if data['OrderID'] == orderID:
+              Address = data['Address']
+              #print(Address)
+          return render_template('home.html', tasks=queue, passed_value = return_details_to_display, tracking_id=tracking_id, queue_checker=queueChecker, address=Address,  user=current_user, **context)
+        else: 
+            return render_template('home.html', tasks=queue,  user=current_user)
+      
+      else:
+        flash('Account not complete. You do not have access to this page. Your are not subscribed.', category='error')
+        return redirect('/account')
+    else: 
+      flash('Account not complete. You do not have access to this page. Your AmazonSellerCentral account is not linked.', category='error')
       return redirect('/account')
-  else: 
-    flash('Account not complete. You do not have access to this page. Your AmazonSellerCentral account is not linked.', category='error')
+  else:
+    flash('Your account is Restricted. Please contact us for more information.', category='error')
     return redirect('/account')
       
 @views.route('/refresh_returns_and_inventory')
@@ -252,6 +259,15 @@ def admin():
   else:
     flash('Access Denied.', category='error')
     return redirect(url_for('views.home'))
+
+@views.route('/request_delete_user/<user>')
+@login_required
+def request_delete_user(user):
+  add_request_to_delete_user(user)
+  flash('Request to Delete Account Sent.', category='success')
+  return redirect('/account')
+
+    
 @views.route('/delete_user/<user>')
 @login_required
 def delete_user(user):
@@ -294,19 +310,37 @@ def clear_deleted_users():
 
 @views.route('/download-queue-pdf')
 def download_queue():
-    download_queue_data(current_user.id)
-    buffer = BytesIO()
-    with open('website/static/files/queue.pdf', 'rb') as f:
-        buffer.write(f.read())
-    buffer.seek(0)
-    os.remove('website/static/files/queue.pdf')
-    response = make_response(buffer.getvalue())
+    response = download_queue_data(current_user.id)
+    # buffer = BytesIO()
+    # with open('website/static/files/queue.pdf', 'rb') as f:
+    #     buffer.write(f.read())
+    # buffer.seek(0)
+    # os.remove('website/static/files/queue.pdf')
+    # response = make_response(buffer.getvalue())
   
       # Set the appropriate headers for a PDF file download
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'attachment; filename=queue.pdf'
   
     return response
+
+
+@views.route('/download-inventoryUpdate-pdf')
+def download_queue_and_inventory_change():
+    response = download_queue_and_inventory_change_data(current_user.id, current_user.refresh_token)
+    # buffer = BytesIO()
+    # with open('website/static/files/InventoryUpdate.pdf', 'rb') as f:
+    #     buffer.write(f.read())
+    # buffer.seek(0)
+    # os.remove('website/static/files/InventoryUpdate.pdf')
+    # response = make_response(buffer.getvalue())
+  
+      # Set the appropriate headers for a PDF file download
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'attachment; filename=InventoryUpdate.pdf'
+  
+    return response
+  
   #   return send_file(buffer, mimetype='application/pdf', as_attachment=True,
   # attachment_filename='queue.pdf'
   #           )

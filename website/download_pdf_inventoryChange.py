@@ -1,20 +1,24 @@
 from fpdf import FPDF
+from flask import Response
 from .models import Tracking_ids
 # from flask import Flask, render_template, request, redirect, url_for
 # from flask_sqlalchemy import SQLAlchemy
 # from flask import Blueprint, render_template, request, flash, jsonify
 # from flask_login import login_required, current_user
 # from . import db
-from.database import load_queue_from_db
+#from.database import load_queue_from_db
+from .amazonAPI import produce_pdf
 
 # tracking_ids = Tracking_ids.query.filter_by(user_id=current_user.id).all()
 
 
-def download_queue_data(user_id):
-    tracking_ids = load_queue_from_db(user_id)
+def download_queue_and_inventory_change_data(user_id, refresh_token):
+    response = produce_pdf(user_id, refresh_token)
+    Quantity_of_SKUS = response[0]
+    queue_to_increase =response[1]
+    final_inventory = response[2]
     pdf = PDF()
-    pdf.generate_pdf(tracking_ids)
-
+    return (pdf.generate_pdf( Quantity_of_SKUS, queue_to_increase, final_inventory))
 
 class PDF(FPDF):
     def __init__(self):
@@ -43,33 +47,33 @@ class PDF(FPDF):
         # Page number
         self.cell(0, 10, 'Page ' + str(self.page_no()) + '/{nb}', 0, 0, 'C')
 
-    def table(self, tracking_ids):
+    def table(self, Quantity_of_SKUS, queue_to_increase, final_inventory):
         # Colors, line width and bold font
-        self.set_font('Arial', 'B', 16)
+        self.set_font('Arial', 'B', 10)
         self.set_fill_color(255, 0, 0)
         self.set_text_color(255)
         self.set_draw_color(128, 0, 0)
         self.set_line_width(.3)
         self.set_font('', 'B')
         # Header
-        self.cell(25, 10, 'Tracking', 1, 0, 'C', 1)
-        self.cell(10, 10, 'SKU', 1, 0, 'C', 1)
-        self.cell(75, 10, 'Return Quantity', 1, 0, 'C', 1)
-        self.cell(40, 10, 'Phone', 1, 0, 'C', 1)
-        self.cell(45, 10, 'Email', 1, 0, 'C', 1)
+        self.cell(50, 10, 'SKU', 1, 0, 'C', 1)
+        self.cell(40, 10, 'Original Inventory', 1, 0, 'C', 1)
+        self.cell(40, 10, 'Inventory Change', 1, 0, 'C', 1)
+        self.cell(40, 10, 'Final Inventory', 1, 0, 'C', 1)
         self.ln()
         # Data
         self.set_text_color(0)
         self.set_font('Arial', '', 8)
-        for tracking_id in tracking_ids:
-            self.cell(25, 10, tracking_id['tracking'], 1, 0, 'C')
-            self.cell(10, 10, str(tracking_id['SKU']), 1, 0, 'C')
-            self.cell(75, 10, tracking_id['return_quantity'], 1, 0, 'C')
-            self.cell(40, 10, 'test', 1, 0, 'C')
-            self.cell(45, 10, 'test@gmail.com', 1, 1, 'C')
+        for sku in queue_to_increase.keys():
+            self.cell(50, 10, sku, 1, 0, 'C')
+            self.cell(40, 10, Quantity_of_SKUS[sku], 1, 0, 'C')
+            self.cell(40, 10, f' +{queue_to_increase[sku]}', 1, 0, 'C')
+            self.cell(40, 10, str(final_inventory[sku]), 1, 1, 'C')
+            
         # Closing line
         self.cell(0, 10, '', 0, 1)
 
-    def generate_pdf(self, tracking_ids):
-        self.table(tracking_ids)
-        self.output('website/static/files/queue.pdf', 'F')
+    def generate_pdf(self, Quantity_of_SKUS, queue_to_increase, final_inventory):
+        self.table(Quantity_of_SKUS, queue_to_increase,  final_inventory)
+        return( Response(self.output(dest='S'), mimetype='application/pdf'))
+        # self.output('website/static/files/InventoryUpdate.pdf', 'F')

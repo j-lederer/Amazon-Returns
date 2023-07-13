@@ -72,6 +72,8 @@ class User(db.Model, UserMixin):
   date_joined = db.Column(db.DateTime(timezone=True), default=func.now())
   status = db.Column(db.String(150))
   refresh_token = db.Column(db.String(3000))
+  restricted = db.Column(db.String(150))
+  delete_request = db.Column(db.String(150))
   addresses = db.relationship('Addresses', backref='addresses_ref', passive_deletes=True)
   all_return_details = db.relationship('All_return_details',
                                        backref='all_return_details_ref', passive_deletes=True)

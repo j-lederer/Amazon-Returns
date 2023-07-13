@@ -340,3 +340,18 @@ def get_refresh_token(user_id):
   else:
     print("error with database call get_refresh_token")
   
+def load_restricted(user_id):
+  user = User.query.filter(User.id==user_id).first()
+  if user:
+    return user.restricted
+  else:
+    print("error with database call load_restricted")
+
+def add_request_to_delete_user(user_id):
+  user = User.query.filter(User.id==user_id).first()
+  if user:
+    user.delete_request = 'yes'
+    db.session.commit()
+  else:
+    print("error with database call add_request_to_delete_user")
+  

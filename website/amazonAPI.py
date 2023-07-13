@@ -322,7 +322,37 @@ def increaseInventory(Quantity_of_SKUS, user_id, refresh_token):
   delete_whole_tracking_id_queue(user_id)
   return "Inventory Feeds submitted successfully", queue_to_increase
     
-      
+
+def produce_pdf(user_id, refresh_token):
+  credentials = dict(
+    refresh_token=refresh_token,
+    lwa_app_id=os.environ['LWA_APP_ID'],
+    lwa_client_secret=os.environ['LWA_CLIENT_SECRET'],
+    aws_access_key=os.environ['AWS_ACCESS_KEY'],
+    aws_secret_key=os.environ['AWS_SECRET_KEY'],  
+    #role_arn="arn:aws:iam::108760843519:role/New_Role"
+)
+  Quantity_of_SKUS = checkInventory(refresh_token)
+  
+  queue = load_queue_from_db(user_id)
+  queue_to_increase= {}
+  is_duplicate = False
+  for track in queue:
+      for sku in queue_to_increase.keys():
+        if sku == track['SKU']:
+          is_duplicate = True
+      if is_duplicate:
+        queue_to_increase[track['SKU']] = queue_to_increase[track['SKU']] + track['return_quantity']        
+      else:
+        queue_to_increase[track['SKU']]=track['return_quantity']
+
+  final_inventory={}
+  for sku in queue_to_increase.keys():
+    final_inventory[sku] =(int( Quantity_of_SKUS[sku]) + int( queue_to_increase[sku]) )
+
+  return Quantity_of_SKUS, queue_to_increase, final_inventory
+    
+  
         
   
 def checkInventoryIncrease(Initial_quantity_of_skus, skus_and_increases, refresh_token):
@@ -366,7 +396,8 @@ def checkInventoryIncrease(Initial_quantity_of_skus, skus_and_increases, refresh
       time.sleep(60)
     else:
       return ("No returns in queue detected")
-  return "Inventory Increase Not Detected"
+  return "Inventory Increase Not Detected" 
+
 
 
 def get_addresses_from_GetOrders(refresh_token):
